@@ -10,6 +10,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.view.accessibility.AccessibilityEvent
 import com.example.qucidemo.databinding.FloatingDictBinding
 
@@ -66,11 +67,13 @@ class DictAccessibilityService : AccessibilityService() {
 
     // 只把「像英文单词/短语」的内容当取词，避免复制中文/链接时乱弹窗
     private fun looksLikeWord(s: String): Boolean {
-        if (s.isEmpty() || s.length > 60) return false
+        if (s.isEmpty() || s.length > 80 || s.contains("\n")) return false
         if (s.contains("http", true) || s.contains("www.")) return false
         val eng = s.count { it in 'a'..'z' || it in 'A'..'Z' }
-        if (eng == 0) return false
-        return s.all { it.isLetterOrDigit() || it == ' ' || it == '-' || it == '\'' || it == '.' }
+        val letters = s.count { it.isLetter() }
+        if (eng == 0 || letters == 0) return false
+        // 英文字母占多数即视为可取词的文本（兼容带标点的句子）
+        return eng.toDouble() / s.length >= 0.5
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -131,7 +134,13 @@ class DictAccessibilityService : AccessibilityService() {
         val show = binding.cardPanel.visibility != android.view.View.VISIBLE
         binding.cardPanel.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
         applyFlags(show)
-        if (show) binding.etWord.requestFocus()
+        if (show) showKeyboard()
+    }
+
+    private fun showKeyboard() {
+        binding.etWord.requestFocus()
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(binding.etWord, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun applyFlags(focusableForIme: Boolean) {
@@ -153,6 +162,7 @@ class DictAccessibilityService : AccessibilityService() {
             binding.cardPanel.visibility = android.view.View.VISIBLE
             applyFlags(true)
             binding.etWord.setText(word)
+            showKeyboard()
             queryWord(word)
         }
     }
