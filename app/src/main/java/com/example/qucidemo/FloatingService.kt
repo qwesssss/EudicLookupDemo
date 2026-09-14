@@ -26,7 +26,11 @@ class FloatingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(NOTIF_ID, buildNotification())
+        try {
+            startForeground(NOTIF_ID, buildNotification())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         binding = FloatingDictBinding.inflate(LayoutInflater.from(this))
         params = WindowManager.LayoutParams().apply {
@@ -151,6 +155,10 @@ class FloatingService : Service() {
             .setContentText("选中文字即可查词")
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .build()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

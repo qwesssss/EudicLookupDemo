@@ -22,22 +22,10 @@
         android:layout_marginBottom="20dp" />
 
     <Button
-        android:id="@+id/btnOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="1. 开启悬浮窗权限" />
-
-    <Button
         android:id="@+id/btnAccessibility"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="2. 开启无障碍服务（取词核心）" />
-
-    <Button
-        android:id="@+id/btnStart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="3. 启动悬浮取词" />
+        android:text="1. 开启无障碍服务（取词核心）" />
 
     <Button
         android:id="@+id/btnTest"
@@ -54,11 +42,10 @@
         android:layout_marginTop="12dp" />
 
     <TextView
-        android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="12sp"
         android:textColor="#888888"
         android:layout_marginTop="16dp"
-        android:text="步骤：先开悬浮窗权限 → 再开无障碍服务 → 点启动 → 去任意 App 选中英文试一试" />
+        android:text="步骤：点上方开启无障碍服务 → 在列表里找到「取词Demo」并打开 → 去任意 App 选中英文，右上角自动浮出释义卡片。无需悬浮窗权限、无需启动按钮。" />
 </LinearLayout>
