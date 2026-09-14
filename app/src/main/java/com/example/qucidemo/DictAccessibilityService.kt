@@ -1,6 +1,7 @@
 package com.example.qucidemo
 
 import android.accessibilityservice.AccessibilityService
+import android.content.ClipboardManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
@@ -19,6 +20,7 @@ class DictAccessibilityService : AccessibilityService() {
     private lateinit var params: WindowManager.LayoutParams
     private val handler = Handler(Looper.getMainLooper())
     private var currentWord = ""
+    private var clipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -43,9 +45,32 @@ class DictAccessibilityService : AccessibilityService() {
             wm.addView(binding.root, params)
             setupUI()
             applyFlags(false)
+            registerClipboard()
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun registerClipboard() {
+        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        clipListener = ClipboardManager.OnPrimaryClipChangedListener {
+            val clip = cm.primaryClip ?: return@OnPrimaryClipChangedListener
+            if (clip.itemCount <= 0) return@OnPrimaryClipChangedListener
+            val text = clip.getItemAt(0).text?.toString()?.trim() ?: return@OnPrimaryClipChangedListener
+            if (looksLikeWord(text)) {
+                handler.post { showWord(text) }
+            }
+        }
+        cm.addPrimaryClipChangedListener(clipListener)
+    }
+
+    // 只把「像英文单词/短语」的内容当取词，避免复制中文/链接时乱弹窗
+    private fun looksLikeWord(s: String): Boolean {
+        if (s.isEmpty() || s.length > 60) return false
+        if (s.contains("http", true) || s.contains("www.")) return false
+        val eng = s.count { it in 'a'..'z' || it in 'A'..'Z' }
+        if (eng == 0) return false
+        return s.all { it.isLetterOrDigit() || it == ' ' || it == '-' || it == '\'' || it == '.' }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -156,6 +181,10 @@ class DictAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onDestroy() {
+        clipListener?.let {
+            (getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager)
+                ?.removePrimaryClipChangedListener(it)
+        }
         if (::binding.isInitialized) wm.removeView(binding.root)
         super.onDestroy()
     }
