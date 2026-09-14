@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">取词Demo</string>
+    <string name="accessibility_desc">开启后，在任意应用选中文字即可弹出浮窗释义（类似欧陆词典跨软件取词）</string>
+</resources>
